@@ -37,22 +37,29 @@ pause
 clear all, clc
 disp('Problem 3')
 
-function [Dz] = TTT_C2D_matched(Ds,h)
+function [Dz] = TTT_C2D_matched(Ds,h,causality,omega_bar)
 
-m = Ds.num.n
+arguments
+    Ds (1,1) RR_tf
+    h (1,1) double
+    causality (1,1) string = 'semi'
+    omega_bar (1,1) double = 0
+end
+
+m = Ds.num.n            % initialize degree of polynomials that compose D(s) and its poles and roots
 n = Ds.den.n
 z = Ds.z
 p = Ds.p
 
-t = RR_tf([1],[1])
+t = RR_tf([1],[1])      % create empty transfer function to modify
 
-if m == 0
-dz = RR_poly(1)
+if m == 0               % check if numerator has no finite zeros
+dz = []
 
 else 
 
 for i = 1:m
-    dz(i+1) = exp(z(i)*h) ;
+    dz(i+1) = exp(z(i)*h);      %calculate zeros and poles based on z = exp(s*h)
 end
 end
 
@@ -60,21 +67,39 @@ for i = 1:n
     dp(i) = exp(p(i)*h);
 end
 
-if n>m
-for i = 1:(n-m)
-t = t* RR_tf([1 1],[1]);
+switch causality
+
+    case 'strict'
+
+        if n-m > 1                          %Strictly causal case where n>m in D(z)
+            for i = 1:(n-m)-1           %Adds infinite zeros to empty tf based on # of poles and zeros
+            t = t* RR_tf([1 1],[1]);
+            end
+            t = t*RR_tf([1],[1 0])
+        else if n-m == 1
+            t = t*RR_tf([1],[1 0])
+        end
+        end
+
+    case 'semi'
+
+        if n>m                          %Semi-causal case where n>m in D(z)
+            for i = 1:(n-m)             %Adds infinite zeros to empty tf based on # of poles and zeros
+            t = t* RR_tf([1 1],[1]);
+            end
+        
+        end
+        
+
+    otherwise
+        error('Causality must either be ''strict'' or ''semi''')
 end
-end
 
-% while length(dz) < length(dp)-1
-% t = t* RR_tf([1 1],[1])
-% end
+Dz = t*RR_tf(dz,dp,1)                           %Define D(z) using poles and zeros calculated and with infinite zeros
+Dz.h = h                                        %Define D(z) as DTTF by initializing time step h
 
-Dz = t* RR_tf(dz,dp,1)
-Dz.h = h
-
-k = RR_evaluate(Ds,0)/RR_evaluate(Dz,1)
-
-Dz = k*Dz
+k = RR_evaluate(Ds,omega_bar)/RR_evaluate(Dz,1)         %Ensure matching gain between CT and DT by computing relative DC gains and dividing to find their ratio
+                                                % Allow input of omega_bar to get critical gain input (here is s = iw for w  = 0)
+Dz = k*Dz                                       %Implement gain correction
 
 end
