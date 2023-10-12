@@ -23,7 +23,7 @@ clear all, clc, disp('Problem 2: Part b')
 b=RR_poly([2 -2 5 -5],1), a=RR_poly([1 -1 3 -3 6 -6],1)
 
 
-f=RR_poly([-1 -1 -3 -3 -6 -6 -20 -20 -20 -20 ],1)                               % Try k = 5 additional poles for f
+f=RR_poly([-1 -1 -3 -3 -6 -6 -20 -20 -20 -20 -20 ],1)                               % Try k = 5 additional poles for f
 
 [x,y] = RR_diophantine(a,b,f), test=trim(a*x+b*y), residual1=norm(f-test)       % Degree of both x and y is 5, meaning the controller is now proper
 
