@@ -26,9 +26,7 @@ clc
 
 disp('Problem 2');
 
-a = 0.6;
-b = inf;
-g = 0;
+a = 0.6, b = inf, g = 0;
 
 disp('For a given Ku that makes the system unstable, the proportional control Kp established is the fraction of Ku expressed by alpha (a = 0.6). The gain margin is therefore the ratio of the max gain before instability Ku over the current gain Kp, which becomes 1/a = 1/0.6 = 1.666667 = GM.')
 
@@ -46,30 +44,30 @@ clc
 
 disp('Problem 4')
 
-a = 0.6;
-b = 0.5;
-g = 0.125;
-Ku = 3.2;
-wu = 0.3;
-Tu = 1/wu;
+a = 0.0576, b = 15, g = 0.3;
+Ku = 3.326664, wu = 0.3173, Tu = 1/wu;
 
-Kp = a*Ku;
-Ti = b*Tu;
-Td = g*Tu;
+Kp = a*Ku, Ti = b*Tu, Td = g*Tu;
 
-D = tf(Kp*Td*[1 1/Td 1/(Td*Ti)],[1 0],);
+[numer,denom] = pade(6,2);
+delay1 = tf(numer,denom);
 
-pause
+D = tf(Kp*Td*[1 1/Td 1/(Td*Ti)],[1 0])
 
-bode(D*Gd);
+disp('Problem 6')
 
-disp('');
+G = RR_tf([0.1],[1 0.1])
+delay = RR_pade(6,2,2)
+Gd = G*delay
+Gz = RR_C2D_zoh(Gd,2)
 
-pause
 
-Kp
-wi = 1/Ti
-wd = 1/Td
+p1 = RR_poly([1 -1])
+p2 = RR_poly(Gz.p,1)
+p3 = p1*p2
 
-pause
+az = RR_poly(Gz.p,1)
+bz = RR_poly(Gz.z,1)
+f = RR_poly([1 0 0 0 0 0])
 
+[x,y] = RR_diophantine(az,bz,f)
