@@ -151,5 +151,4 @@ JOYSTICK_DEADZONE = 0.2             # when non zero, this is the smallest thrott
 # #Scale the output of the throttle of the ai pilot for all model types.
 AI_THROTTLE_MULT = 1.0              # this multiplier will scale every throttle value for all output from NN models
 #
-
 ```
