@@ -52,6 +52,8 @@ These should be connected using via a USB cable, Bluetooth, or a USB dongle.
 
 When connecting a controller, the VM should ask if the input device will be connected to the host system or the virtual machine &mdash; connect it to the VM.
 
+![alt text](image.png)
+
 ### Verify Controller connection
 
 The controller will be identified as js0 (or js# if there are multiple "joysticks" connected to the system)
