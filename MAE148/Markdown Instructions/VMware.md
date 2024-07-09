@@ -53,6 +53,7 @@ These should be connected using via a USB cable, Bluetooth, or a USB dongle.
 When connecting a controller, the VM should ask if the input device will be connected to the host system or the virtual machine &mdash; connect it to the VM.
 
 ![alt text](image.png) 
+
 ![alt text](image-1.png)
 
 ### Verify Controller connection
