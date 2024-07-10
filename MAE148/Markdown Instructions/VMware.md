@@ -7,8 +7,10 @@ Virtual machines (VMs) are essentially computers running on computers &mdash; yo
 * Unzipping software (7Zip, Winrar) 
 
 * Download the VMware Player installer (depending on your machine's OS)
+  * https://drive.google.com/file/d/1h8nNZnlbZT5MN0D3sYRS0CRfspewogTQ/view?usp=drive_link
 
 * Download the Ubuntu VM image &mdash; make sure you have enough space on your disk   (~40 GB zipped, ~50 GB unzipped)
+  * https://drive.google.com/file/d/1aGVPzoEPYW0GxUnVGjzkiNsqqJFgZ7hb/view?usp=sharing
 
 * Minimum 8 GB system RAM on host machine (by default the VM uses 5 GB)
   * If your system has at least 16 GB of RAM, enter the VM settings for the image and increase the RAM alloted to 8 GB; the VM must not be running to do so
@@ -16,7 +18,7 @@ Virtual machines (VMs) are essentially computers running on computers &mdash; yo
 ## VMware setup
 
 * Open VMware Player and select *Open a Virtual Machine*
-  * You will be prompted to select an image to be added &mdash; select the image you downloaded with the *.vmx*
+  * You will be prompted to select an image to be added &mdash; select the image you downloaded with the ```.vmx```
  extension
 
 * It should now appear in the list on the left of the VMware Player window &mdash; single-click the image and select *Edit Virtual Machine Settings*
@@ -90,7 +92,7 @@ See https://docs.donkeycar.com/parts/controllers/ for controller support; custom
 
 To setup a new controller or modify input mappings, you can use the Joystick Wizard (described here: https://docs.donkeycar.com/utility/donkey/#joystick-wizard)
 
-The joystick wizard creates a custom controller named "my_joystick.py" in the *mycar* folder. To enable it, in the *myconfig.py* file, set ```CONTROLLER_TYPE="custom"``` 
+The joystick wizard creates a custom controller named "my_joystick.py" in the ```mycar``` folder. To enable it, in the ```myconfig.py``` file, set ```CONTROLLER_TYPE="custom"``` 
     
 To run the wizard, from a terminal in the PATH/TO/mycar directory, run 
 
@@ -185,7 +187,7 @@ Replace the value of ```SIM_ARTIFICIAL_LATENCY``` with the average ping delay (e
 
 The AI model works via behavioral cloning. In order to collect data for it, we need to drive the car in the virtual environment.
 
-Enter the donkey virtual environment with the command:
+From a terminal, enter the donkey virtual environment with the command:
 ```
 conda activate donkey
 ```
@@ -208,7 +210,11 @@ Open a web browser and go to ```http://localhost:8887 ```
 
 #### Driving using Mouse and Keyboard
 
-From the web address above, you can control the car using a virtual joystick
+From the web address above, you can control the car using a virtual joystick.
+
+![alt text](image-15.png)
+
+**20 laps is recommended for an initial dataset.**
 
 **To stop the DonkeyCar framework, use CTRL + C in the terminal**
 
@@ -227,7 +233,7 @@ To use a physical joystick without using the web browser, edit this section in `
 # NETWORK_JS_SERVER_IP = None         #when listening for network joystick control, which ip is serving this information
 # JOYSTICK_DEADZONE = 0.01            # when non zero, this is the smallest throttle before recording triggered.
 ```
-Set ```USE_JOYSTICK_DEFAULT``` to ```True``` and set the controller type ```CONTROLLER_TYPE``` to one from the adjacent list (ps3|ps4|...).
+Set ```USE_JOYSTICK_AS_DEFAULT``` to ```True``` and set the controller type ```CONTROLLER_TYPE``` to one from the adjacent list (ps3|ps4|...).
 
 You may have to uncomment lines in order for them to take effect.
 
@@ -290,6 +296,9 @@ To train data from a specific tub and transfer to a previous model:
 ```
 python train.py --tub ~/projects/d4_sim/data/TUB_NAME  --transfer=models/PREVIOUS_MODEL.h5  --model=models/NEW_MODEL.h5
 ```
+Tubs are subsections of the data folder that you may create to separate training data. To use all the data in the ```data``` folder, do not include a tub name after ```~/projects/d4_sim/data/``` in the tub argument.
+
+
 ### Upgrading to the latest Donkey-Sim and Donkey-Gym (if needed)
 
 ### Common Issues
@@ -358,6 +367,8 @@ If there is a pod, delete it with:
 ```
 kubectl delete pod <POD_NAME>
 ```
+### Transfering Data
+
 In the **Remote Session**, prepare DonkeyCar.
 
 The donkey virtual environment should automatically be invoked for you; otherwise try 
@@ -389,5 +400,70 @@ In the **Local Session**
 ```
 rsync -avr -e ssh data/<tub_name> <user_name>@dsmlp-login.ucsd.edu:projects/d4_sim/data/
 ```
+This sends specific tubs (e.g. tub_#_21-07-13 in this example) to the remote session.
+
+![alt text](image-16.png)
+
+The tubs should now appear in the remote session.
+
+![alt text](image-17.png)
 
 The ```rsync``` command syncs directories remotely from one system to another. That means it will only copy the differences between the two directories to save time and reduce load. Since the data does not exist initially on the remote system, the first use of ```rsync``` will copy the whole folder over to the remote system.
+
+### Training on Data
+
+Once the data is transferred to the remote session, training a model on it is the same as on a local session.
+
+In the **Remote Session**
+
+You can train multiple tubs at the same time with (the paths to the tubs must be separated by commas, **no spaces**).
+```
+python manage.py train --tub data/tub1,data/tub2 --model models/MODEL_NAME.h5
+```
+This should also has the same effect:
+```
+python train.py --tub data/tub1 --model models/MODEL_NAME.h5
+```
+To alter a previous model with new data:
+```
+python train.py --tub data/tub1 --model models/NEW_MODEL_NAME.h5 --transfer models/OLD_MODEL_NAME.h5
+```
+
+**Note** : If "imgaug" is not availible and Donkeysim generates an error, run 
+```
+pip install imgaug
+```
+
+### Transferring Data back to Local Session
+
+This is done similarly using the ```rsync``` command, but the source and destination are flipped since the data is going from the remote session to the local session.
+
+In the **Local Session**
+
+```
+rsync -avr -e ssh <user_name>@dsmlp-login.ucsd.edu:projects/d4_sim/models/<model_file> models/
+```
+
+Now you can test the car in the local session as before.
+
+## Using a Remote Server for the Simulator
+
+The simulator for DonkeyCar (that you found in  ```~/projects/DonkeySimLinux/``` and executed with the file ```donkey_sim.x86_64```) can be run from a remote server instead of locally on your machine.
+
+The server's name is ```donkey-sim.roboticist.dev```
+
+You can connect to the remote server by changing the simulator host in the ```myconfig.py``` file.
+
+![alt text](image-18.png)
+
+Set the ```SIM_HOST``` from the local IP to ```donkey-sim.roboticist.dev``` and set the ```SIM_ARTIFICIAL_LATENCY``` to ```0```.
+
+Don't forget to change the artificial latency, otherwise your car will experience both *real and virtual* latency and perform poorly.
+
+Since the simulator is running on a remote server, how can I view the car on the track?
+
+You can see the car on the livestream on
+
+https://www.twitch.tv/roboticists or https://www.twitch.tv/roboticists2
+
+The car should appear momentarily after you run the same command to start the car if you have configured the host properly.
